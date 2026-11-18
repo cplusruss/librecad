@@ -25,6 +25,7 @@
 
 #include "lc_layerdialog_ex.h"
 #include "lc_layertreeitem.h"
+#include "lc_theme.h"
 #include "lc_layertreemodel_options.h"
 #include "lc_layertreeoptionsdialog.h"
 #include "lc_layertreeview.h"
@@ -122,7 +123,8 @@ LC_LayerTreeView *LC_LayerTreeWidget::initTreeView(){
 
     treeView->setContextMenuPolicy(Qt::CustomContextMenu);
 #ifndef DONT_FORCE_WIDGETS_CSS
-    treeView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
+    if (LC_Theme::isClassic())
+        treeView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
 #endif
 
     connect(treeView, &QTreeView::customContextMenuRequested, this, &LC_LayerTreeWidget::onCustomContextMenu);

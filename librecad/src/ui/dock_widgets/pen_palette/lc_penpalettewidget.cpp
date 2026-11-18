@@ -32,6 +32,7 @@
 #include <QTimer>
 
 #include "lc_flexlayout.h"
+#include "lc_theme.h"
 #include "lc_penitem.h"
 #include "lc_penpalettedata.h"
 #include "lc_penpalettemodel.h"
@@ -191,7 +192,8 @@ void LC_PenPaletteWidget::initTableView(){
     tableView->setColumnWidth(m_penPaletteModel ->translateColumn(LC_PenPaletteModel::TYPE_ICON), LC_PenPaletteModel::ICON_WIDTH);
     tableView->setColumnWidth(m_penPaletteModel ->translateColumn(LC_PenPaletteModel::WIDTH_ICON), LC_PenPaletteModel::ICON_WIDTH);
 #ifndef DONT_FORCE_WIDGETS_CSS
-    tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
+    if (LC_Theme::isClassic())
+        tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
 #endif
 
     connect(tableView, &QTableView::clicked, this, &LC_PenPaletteWidget::onTableClicked);

@@ -12,12 +12,15 @@ class QMenuBar;
 // Windows only. The main window's caption row (icon, menu bar, title, caption buttons) on a frameless window:
 // Windows does the move, snap, resize and double-click maximize through WM_NCHITTEST; the 3D border is drawn in the
 // window's contents margin. Port of rdoc's app\ui\titlebar.py (TitleBar + FramelessMixin).
+// classic: DrawFrameControl 3D button; otherwise the flat Windows 11 caption button with a Segoe Fluent glyph
 class LC_CaptionButton : public QAbstractButton {
 public:
-    explicit LC_CaptionButton(unsigned kind);
+    LC_CaptionButton(unsigned kind, bool classic);
     unsigned kind;
 protected:
     void paintEvent(QPaintEvent* event) override;
+private:
+    bool m_classic;
 };
 
 class LC_TitleBar : public QWidget {
@@ -46,6 +49,8 @@ public:
     static int edgeHit(const QSize& size, const QPoint& pos);
     // the window title as Windows shows it: Qt's "[*]" placeholder becomes "*" when modified
     static QString captionText(const QString& title, bool modified);
+    // the Segoe Fluent Icons / MDL2 glyph for a DFCS_CAPTION* kind
+    static QChar fluentGlyph(unsigned kind);
 
 protected:
     bool event(QEvent* event) override;
@@ -57,6 +62,7 @@ private:
     int hitTest(const QPoint& pos) const;
 
     QMainWindow* m_win;
+    bool m_classic;
     QLabel* m_icon;
     QMenuBar* m_menuBar;
     QLabel* m_title;

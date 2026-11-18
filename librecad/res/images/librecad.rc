@@ -1,7 +1,9 @@
 // First icon = the application icon (used by Explorer for librecad.exe itself
 // and as the window/taskbar icon). Windows picks the first ICON resource as
-// the EXE's main icon, regardless of its name.
-LibreCAD ICON "appicon/flat.ico"
+// the EXE's main icon, regardless of its name. The name must be IDI_ICON1: Qt's
+// Windows platform plugin loads exactly that name as the window-class icon, and
+// without it every window falls back to the blank IDI_APPLICATION icon.
+IDI_ICON1 ICON "appicon/flat.ico"
 
 // Numeric resource ID = 2: the .dxf document icon. Referenced from the
 // file-association ProgID DefaultIcon as `librecad.exe,-2` (negative integer

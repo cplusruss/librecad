@@ -14,6 +14,9 @@
 #include <qdrawutil.h>
 
 #include <windows.h>
+#include <dwmapi.h>
+
+#include "lc_theme.h"
 
 namespace {
 HWND hwndOf(const QWidget* w) {
@@ -21,9 +24,15 @@ HWND hwndOf(const QWidget* w) {
 }
 }
 
-LC_CaptionButton::LC_CaptionButton(unsigned kind):
-    kind(kind) {
+LC_CaptionButton::LC_CaptionButton(unsigned kind, bool classic):
+    kind(kind), m_classic(classic) {
     setFocusPolicy(Qt::NoFocus);
+    if (!classic) {
+        // Windows 11 caption button metrics
+        setAttribute(Qt::WA_Hover);
+        setFixedSize(46, 32);
+        return;
+    }
     const qreal dpr = devicePixelRatioF();
     const UINT dpi = static_cast<UINT>(qRound(96 * dpr));
     // classic caption buttons are the caption size less the 2 px frame gaps
@@ -33,6 +42,30 @@ LC_CaptionButton::LC_CaptionButton(unsigned kind):
 }
 
 void LC_CaptionButton::paintEvent([[maybe_unused]] QPaintEvent* event) {
+    if (!m_classic) {
+        QPainter p(this);
+        const bool close = kind == DFCS_CAPTIONCLOSE;
+        const bool hot = underMouse() || isDown();
+        // Windows 11 dark caption: subtle white overlay on hover, red close button
+        if (hot) {
+            QColor bg = close ? QColor(0xC4, 0x2B, 0x1C) : QColor(255, 255, 255, isDown() ? 0x0B : 0x0F);
+            if (close && isDown()) {
+                bg.setAlpha(0xE6);
+            }
+            p.fillRect(rect(), bg);
+        }
+        QColor fg = (close && hot) ? QColor(Qt::white) : palette().color(QPalette::Active, QPalette::WindowText);
+        if (!hot && !window()->isActiveWindow()) {
+            fg.setAlphaF(0.45);
+        }
+        QFont f = font();
+        f.setFamilies({QStringLiteral("Segoe Fluent Icons"), QStringLiteral("Segoe MDL2 Assets")});
+        f.setPixelSize(10);
+        p.setFont(f);
+        p.setPen(fg);
+        p.drawText(rect(), Qt::AlignCenter, QString(LC_TitleBar::fluentGlyph(kind)));
+        return;
+    }
     const qreal dpr = devicePixelRatioF();
     QImage img = LC_TitleBar::frameControl(kind, isDown(), qRound(width() * dpr), qRound(height() * dpr));
     img.setDevicePixelRatio(dpr);
@@ -84,38 +117,67 @@ QString LC_TitleBar::captionText(const QString& title, bool modified) {
     return text.replace(QStringLiteral("[*]"), modified ? QStringLiteral("*") : QString());
 }
 
+QChar LC_TitleBar::fluentGlyph(unsigned kind) {
+    switch (kind) {
+        case DFCS_CAPTIONMIN:
+            return QChar(0xE921);
+        case DFCS_CAPTIONMAX:
+            return QChar(0xE922);
+        case DFCS_CAPTIONRESTORE:
+            return QChar(0xE923);
+        case DFCS_CAPTIONCLOSE:
+            return QChar(0xE8BB);
+        default:
+            qFatal("LC_TitleBar::fluentGlyph: unknown caption kind %u", kind);
+    }
+}
+
 LC_TitleBar::LC_TitleBar(QMainWindow* win):
-    m_win(win) {
+    m_win(win), m_classic(LC_Theme::isClassic()) {
     m_icon = new QLabel(this);
     m_menuBar = new QMenuBar(this);
     m_menuBar->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     m_title = new QLabel(this);
     m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    QFont font = m_title->font();
-    font.setBold(true);
-    m_title->setFont(font);
+    if (m_classic) {
+        QFont font = m_title->font();
+        font.setBold(true);
+        m_title->setFont(font);
+    }
     m_title->setMinimumWidth(TITLE_MIN);
 
     auto* row = new QHBoxLayout(this);
-    row->setContentsMargins(2, 1, 2, 1);
-    row->setSpacing(2);
+    // Windows 11 caption buttons sit flush with the top and right edges
+    if (m_classic) {
+        row->setContentsMargins(2, 1, 2, 1);
+        row->setSpacing(2);
+    }
+    else {
+        row->setContentsMargins(8, 0, 0, 0);
+        row->setSpacing(6);
+    }
     row->addWidget(m_icon, 0, Qt::AlignVCenter);
     row->addWidget(m_menuBar, 0, Qt::AlignVCenter);
     row->addWidget(m_title, 1);
 
     auto* caption = new QHBoxLayout();
     caption->setSpacing(0);
-    auto* minimize = new LC_CaptionButton(DFCS_CAPTIONMIN);
+    auto* minimize = new LC_CaptionButton(DFCS_CAPTIONMIN, m_classic);
     connect(minimize, &QAbstractButton::clicked, win, &QWidget::showMinimized);
-    m_max = new LC_CaptionButton(DFCS_CAPTIONMAX);
+    m_max = new LC_CaptionButton(DFCS_CAPTIONMAX, m_classic);
     connect(m_max, &QAbstractButton::clicked, this, [this] { zoom(!m_win->isMaximized()); });
-    auto* close = new LC_CaptionButton(DFCS_CAPTIONCLOSE);
+    auto* close = new LC_CaptionButton(DFCS_CAPTIONCLOSE, m_classic);
     connect(close, &QAbstractButton::clicked, win, &QWidget::close);
     caption->addWidget(minimize);
     caption->addWidget(m_max);
-    caption->addSpacing(2);
+    if (m_classic) {
+        caption->addSpacing(2);
+    }
     caption->addWidget(close);
     row->addLayout(caption);
+    if (!m_classic) {
+        row->setAlignment(caption, Qt::AlignTop);
+    }
 
     // caption, not controls: hitTest sees no child here and reports HTCAPTION
     m_icon->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -153,6 +215,19 @@ void LC_TitleBar::applyFrameStyle() {
     // managers treat this as a captioned window; the zero frame leaves nothing for it to paint
     HWND hwnd = hwndOf(m_win);
     SetWindowLongPtrW(hwnd, GWL_STYLE, GetWindowLongPtrW(hwnd, GWL_STYLE) | WS_THICKFRAME | WS_CAPTION);
+    if (!m_classic) {
+        // Windows 11: DWM draws the shadow and rounded corners only with some frame extended into the client area;
+        // dark mode makes its 1 px border dark. Both attributes are no-ops before Windows 11.
+        const MARGINS shadow{1, 1, 1, 1};
+        DwmExtendFrameIntoClientArea(hwnd, &shadow);
+        // Windows SDK dwmapi.h values; MinGW's header lacks them
+        constexpr DWORD immersiveDarkMode = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
+        constexpr DWORD cornerPreference = 33;  // DWMWA_WINDOW_CORNER_PREFERENCE
+        const BOOL dark = TRUE;
+        DwmSetWindowAttribute(hwnd, immersiveDarkMode, &dark, sizeof(dark));
+        const DWORD round = 2;                  // DWMWCP_ROUND
+        DwmSetWindowAttribute(hwnd, cornerPreference, &round, sizeof(round));
+    }
     SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     syncFrame();
 }
@@ -188,8 +263,11 @@ void LC_TitleBar::syncFrame() {
         m_win->setContentsMargins(qMax(0, a.left() - g.left()), qMax(0, a.top() - g.top()),
                                   qMax(0, g.right() - a.right()), qMax(0, g.bottom() - a.bottom()));
     }
-    else {
+    else if (m_classic) {
         m_win->setContentsMargins(BORDER, BORDER, BORDER, BORDER);
+    }
+    else {
+        m_win->setContentsMargins(0, 0, 0, 0);
     }
     m_max->kind = m_win->isMaximized() ? DFCS_CAPTIONRESTORE : DFCS_CAPTIONMAX;
     m_max->update();
@@ -209,6 +287,11 @@ void LC_TitleBar::windowChanged(QEvent* event) {
     else if (event->type() == QEvent::ModifiedChange) {
         syncTitle();
     }
+    else if (event->type() == QEvent::ActivationChange && !m_classic) {
+        // Windows 11 dims the caption of an inactive window
+        m_title->setEnabled(m_win->isActiveWindow());
+        update(); // repaints the caption buttons too
+    }
 }
 
 void LC_TitleBar::windowResized() {
@@ -218,7 +301,7 @@ void LC_TitleBar::windowResized() {
 }
 
 void LC_TitleBar::paintBorder() {
-    if (m_win->contentsMargins().left() != 0 && !m_win->isMaximized()) {
+    if (m_classic && m_win->contentsMargins().left() != 0 && !m_win->isMaximized()) {
         QPainter p(m_win);
         const QBrush fill = m_win->palette().window();
         qDrawWinPanel(&p, m_win->rect(), m_win->palette(), false, &fill);
@@ -226,7 +309,10 @@ void LC_TitleBar::paintBorder() {
 }
 
 int LC_TitleBar::hitTest(const QPoint& pos) const {
-    if (m_win->contentsMargins().left() != 0 && !m_win->isMaximized()) {
+    // Windows 11 has no drawn border: the resize band lies over the content edge, as the native frame's does
+    const bool edges = m_classic ? m_win->contentsMargins().left() != 0
+                                 : !m_win->isFullScreen();
+    if (edges && !m_win->isMaximized()) {
         const int code = edgeHit(m_win->size(), pos);
         if (code != 0) {
             return code;

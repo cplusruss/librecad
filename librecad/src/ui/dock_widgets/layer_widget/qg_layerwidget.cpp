@@ -44,6 +44,7 @@
 
 #include "lc_actiongroupmanager.h"
 #include "lc_flexlayout.h"
+#include "lc_theme.h"
 #include "qc_applicationwindow.h"
 #include "qc_mdiwindow.h"
 #include "qg_actionhandler.h"
@@ -305,11 +306,12 @@ QG_LayerWidget::QG_LayerWidget(LC_ActionGroupManager* agm, QG_ActionHandler *ah,
     // gridline-color makes the table grid black instead of the default
     // platform gray; the QHeaderView rules carry it into the (hidden but
     // still-rendered) header line too.
-    m_layerView->setStyleSheet(
-        "QWidget {background-color: white;}"
-        "QScrollBar{ background-color: none }"
-        "QTableView { gridline-color: black; }"
-    );
+    if (LC_Theme::isClassic())
+        m_layerView->setStyleSheet(
+            "QWidget {background-color: white;}"
+            "QScrollBar{ background-color: none }"
+            "QTableView { gridline-color: black; }"
+        );
 #endif
 
     auto* lay = new QVBoxLayout(this);

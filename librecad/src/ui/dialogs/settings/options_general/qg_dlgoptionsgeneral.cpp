@@ -39,6 +39,7 @@
 
 #include "dxf_format.h"
 #include "lc_appicon.h"
+#include "lc_theme.h"
 #include "lc_defaults.h"
 #include "lc_settingsexporter.h"
 #include "main.h"
@@ -128,6 +129,8 @@ void QG_DlgOptionsGeneral::init(){
     {
         // unknown ini value: icon() already falls back to the first key, so show that
         m_cbAppIcon->setCurrentIndex(std::max(0, m_cbAppIcon->findData(LC_AppIcon::currentKey())));
+        m_originalTheme = LC_Theme::currentKey();
+        m_cbTheme->setCurrentIndex(m_cbTheme->findData(m_originalTheme));
         // graphic view:
 
         // AutoCAD-style selection (click-release-move-click) toggle. Default = on.
@@ -911,6 +914,7 @@ void QG_DlgOptionsGeneral::ok(){
         LC_GROUP_END();
         LC_AppIcon::setCurrentKey(m_cbAppIcon->currentData().toString());
         LC_AppIcon::apply();
+        LC_Theme::setCurrentKey(m_cbTheme->currentData().toString());
 
         LC_GROUP("Keyboard"); {
             LC_SET("EvaluateCommandOnSpace", cbEvaluateOnSpace->isChecked());
@@ -932,7 +936,8 @@ bool QG_DlgOptionsGeneral::checkRestartNeeded() {
     bool result = m_originalUseClassicToolbar != cbClassicStatusBar->isChecked() ||
                   m_originalLibraryPath != lePathLibrary->text().trimmed() ||
                   m_originalAllowsMenusTearOff != cbAllowMenusDetaching->isChecked() ||
-                  m_originalShowToolbarTooltips != cbStartupTBTooltips->isChecked();
+                  m_originalShowToolbarTooltips != cbStartupTBTooltips->isChecked() ||
+                  m_originalTheme != m_cbTheme->currentData().toString();
     return result;
 }
 
@@ -962,9 +967,16 @@ void QG_DlgOptionsGeneral::setupAppIconSection(){
     for (const QString& key : LC_AppIcon::keys())
         m_cbAppIcon->addItem(LC_AppIcon::icon(key), LC_AppIcon::label(key), key);
     label->setBuddy(m_cbAppIcon);
+    auto* themeLabel = new QLabel(tr("Theme"), tabAppearance);
+    m_cbTheme = new QComboBox(tabAppearance);
+    for (const QString& key : LC_Theme::keys())
+        m_cbTheme->addItem(LC_Theme::label(key), key);
+    themeLabel->setBuddy(m_cbTheme);
     if (auto* tabLayout = qobject_cast<QGridLayout*>(tabAppearance->layout())) {
         tabLayout->addWidget(label, 8, 0);
         tabLayout->addWidget(m_cbAppIcon, 8, 1);
+        tabLayout->addWidget(themeLabel, 9, 0);
+        tabLayout->addWidget(m_cbTheme, 9, 1);
     }
 }
 

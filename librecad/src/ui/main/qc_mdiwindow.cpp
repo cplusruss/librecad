@@ -39,6 +39,7 @@
 #include "lc_documentsstorage.h"
 #include "lc_graphicviewport.h"
 #include "lc_printpreviewview.h"
+#include "lc_theme.h"
 #include "qc_applicationwindow.h"
 #include "qc_mdiwindow.h"
 
@@ -288,8 +289,10 @@ QC_MDIWindow::QC_MDIWindow(RS_Document *doc, QWidget *parent, bool printPreview,
     : QMdiSubWindow(parent, {Qt::WA_DeleteOnClose})
     , m_owner{doc == nullptr}{
     setAttribute(Qt::WA_DeleteOnClose);
-    if (QStyle* s = classicStyle()) {
-        setStyle(s);
+    if (LC_Theme::isClassic()) {
+        if (QStyle* s = classicStyle()) {
+            setStyle(s);
+        }
     }
     m_cadMdiArea=qobject_cast<QMdiArea*>(parent);
 

@@ -1545,6 +1545,8 @@ set(SHARED_SOURCES
     librecad/src/ui/main/lc_defaultactioncontext.h
     librecad/src/ui/main/lc_appicon.cpp
     librecad/src/ui/main/lc_appicon.h
+    librecad/src/ui/main/lc_theme.cpp
+    librecad/src/ui/main/lc_theme.h
     librecad/src/ui/main/lc_titlebar.cpp
     librecad/src/ui/main/lc_titlebar.h
     librecad/src/ui/main/lc_mdiapplicationwindow.cpp
@@ -1629,7 +1631,7 @@ set_property(TARGET librecad_lib PROPERTY AUTOUIC_OPTIONS --connections string)
 if(WIN32)
     target_compile_definitions(librecad_lib PRIVATE _USE_MATH_DEFINES)
     # GDI (enhanced metafile records) and user32 (clipboard) for the EMF exporter.
-    target_link_libraries(librecad_lib PRIVATE gdi32 user32)
+    target_link_libraries(librecad_lib PRIVATE gdi32 user32 dwmapi)
 endif()
 
 # --- Precompiled headers (off by default; -DLIBRECAD_USE_PCH=ON to enable) ---

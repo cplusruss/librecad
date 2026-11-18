@@ -39,6 +39,7 @@
 #include <QSortFilterProxyModel>
 
 #include "lc_flexlayout.h"
+#include "lc_theme.h"
 #include "qg_actionhandler.h"
 #include "qg_blockwidget.h"
 
@@ -166,7 +167,8 @@ QG_BlockWidget::QG_BlockWidget(LC_ActionGroupManager* agm,QG_ActionHandler* ah, 
     m_blockView->horizontalHeader()->hide();
 
 #ifndef DONT_FORCE_WIDGETS_CSS
-    blockView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
+    if (LC_Theme::isClassic())
+        blockView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
 #endif
     auto* lay = new QVBoxLayout(this);
     lay->setSpacing ( 2 );

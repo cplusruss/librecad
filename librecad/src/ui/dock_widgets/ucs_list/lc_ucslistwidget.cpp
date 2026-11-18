@@ -28,6 +28,7 @@
 
 #include "lc_dlgucslistoptions.h"
 #include "lc_graphicviewport.h"
+#include "lc_theme.h"
 #include "lc_ucs.h"
 #include "lc_ucslistbutton.h"
 #include "lc_ucslistmodel.h"
@@ -139,7 +140,8 @@ void LC_UCSListWidget::createModel() {
     verticalHeader->hide();
 
 #ifndef DONT_FORCE_WIDGETS_CSS
-    tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
+    if (LC_Theme::isClassic())
+        tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
 #endif
 
     connect(tableView, &QTableView::customContextMenuRequested, this, &LC_UCSListWidget::onCustomContextMenu);

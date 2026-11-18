@@ -22,6 +22,7 @@
 #include "lc_actiongroupmanager.h"
 #include "lc_filenameselectionservice.h"
 #include "lc_shortcutsstorage.h"
+#include "lc_theme.h"
 #include "lc_shortcutstreemodel.h"
 #include "lc_shortcuttreeitem.h"
 #include "ui_lc_actionsshortcutsdialog.h"
@@ -101,7 +102,8 @@ void LC_ActionsShortcutsDialog::initTreeView()
   treeView->setSelectionMode(QAbstractItemView::SingleSelection);
 
 #ifndef DONT_FORCE_WIDGETS_CSS
-  treeView->setStyleSheet(
+  if (LC_Theme::isClassic())
+    treeView->setStyleSheet(
       "QTreeView {"
       "    background-color: white;"
       "    outline: none;"  // removes ugly dotted focus rectangle

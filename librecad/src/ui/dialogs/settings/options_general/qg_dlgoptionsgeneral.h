@@ -115,6 +115,7 @@ private:
     bool m_originalExpandedToolsMenu;
     bool m_originalExpandedToolsMenuTillEntity;
     bool m_originalShowToolbarTooltips;
+    QString m_originalTheme;
 
 
     void init();
@@ -132,6 +133,7 @@ private:
     void saveCommandLineSettings();
 
     QComboBox*     m_cbAppIcon {nullptr};
+    QComboBox*     m_cbTheme {nullptr};
     QComboBox*     m_cbCmdLineBg {nullptr};
     QComboBox*     m_cbCmdLineFg {nullptr};
     QFontComboBox* m_fcbCmdLineFont {nullptr};

@@ -46,7 +46,6 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QSettings>
-#include <QStyleFactory>
 
 #include <QDir>
 #include <QPushButton>
@@ -59,11 +58,11 @@
 #include "lc_application.h"
 #include "lc_crash_handler.h"
 #include "lc_dialogtabkeys.h"
+#include "lc_theme.h"
 #include "main.h"
 
 #include "lc_iconcolorsoptions.h"
 #include "qc_applicationwindow.h"
-#include "qc_mdiwindow.h"
 #include "qg_dlginitial.h"
 #include "rs_debug.h"
 #include "rs_fontlist.h"
@@ -319,31 +318,6 @@ int main(int argc, char** argv) {
         }
     }
 
-#ifdef Q_OS_WIN
-    // Classic native Windows look. "Windows" is built into Qt; no plugin needed.
-    // The proxy adds native caption buttons for MDI children, including the
-    // maximized-child controls drawn in the menubar.
-    if (QStyle* classic = QC_MDIWindow::classicStyle()) {
-        QApplication::setStyle(classic);
-    } else {
-        QApplication::setStyle(QStyleFactory::create("Windows"));
-    }
-#endif
-
-    // Highlight color used for menubar/menu selection. Navy on white, applied
-    // to Active AND Inactive groups so out-of-focus menus don't fall back to
-    // the platform's black-on-blue default (which is unreadable).
-    {
-        QPalette pal = QApplication::palette();
-        const QColor navy(10, 36, 106);
-        const QColor white(Qt::white);
-        for (auto grp : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
-            pal.setColor(grp, QPalette::Highlight, navy);
-            pal.setColor(grp, QPalette::HighlightedText, white);
-        }
-        QApplication::setPalette(pal);
-    }
-
     // fixme - sand - NEED TO CHECK WHERE lc_svgicons.so is located under linux and mac!!! That's tested for Windows
     auto appDir = app.applicationDirPath();
     auto inconEnginesDir = appDir + "/iconengines";
@@ -358,6 +332,7 @@ int main(int argc, char** argv) {
     }
 
     QGuiApplication::setDesktopFileName("librecad");
+    LC_Theme::apply();
     LC_AppIcon::apply();
 
     loadIconsStylingOptions();

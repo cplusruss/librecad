@@ -28,6 +28,7 @@
 
 #include "lc_dlgnamedviewslistoptions.h"
 #include "lc_graphicviewport.h"
+#include "lc_theme.h"
 #include "lc_namedviewsbutton.h"
 #include "lc_namedviewslistoptions.h"
 #include "lc_namedviewsmodel.h"
@@ -121,7 +122,8 @@ void LC_NamedViewsListWidget::createModel() {
 
     tableView->setColumnWidth(m_viewsModel->translateColumn(LC_NamedViewsModel::ICON_TYPE), ICON_WIDTH);
 #ifndef DONT_FORCE_WIDGETS_CSS
-    tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
+    if (LC_Theme::isClassic())
+        tableView->setStyleSheet("QWidget {background-color: white;}  QScrollBar{ background-color: none }");
 #endif
 
 
