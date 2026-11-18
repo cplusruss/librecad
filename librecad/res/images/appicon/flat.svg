@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+ <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#a6e82a"/><stop offset="1" stop-color="#68ac00"/></linearGradient>
+ <linearGradient id="pen" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#60666b"/><stop offset="1" stop-color="#2b2e31"/></linearGradient>
+ <linearGradient id="penl" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#f4f6f7"/><stop offset="1" stop-color="#b9bfc4"/></linearGradient>
+ <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#3a4147"/><stop offset="1" stop-color="#1a1d20"/></linearGradient>
+ <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e7ea"/></linearGradient>
+</defs><rect x="24" y="24" width="208" height="208" fill="none" stroke="#7cc400" stroke-width="3" stroke-dasharray="11 7"/><circle cx="128" cy="128" r="80" fill="none" stroke="url(#ring)" stroke-width="26"/><rect x="9.0" y="9.0" width="30" height="30" rx="3" fill="#8ed900" stroke="#4c7a00" stroke-width="3"/><rect x="9.0" y="217.0" width="30" height="30" rx="3" fill="#8ed900" stroke="#4c7a00" stroke-width="3"/><rect x="217.0" y="9.0" width="30" height="30" rx="3" fill="#8ed900" stroke="#4c7a00" stroke-width="3"/><rect x="217.0" y="217.0" width="30" height="30" rx="3" fill="#8ed900" stroke="#4c7a00" stroke-width="3"/><path d="M16 102H74V110.0H88V118H204L242 128L204 138H88V146.0H74V154H16Q10 154 10 148V108Q10 102 16 102Z" fill="url(#pen)"/><rect x="16" y="106" width="52" height="4" rx="2" fill="#ffffff" fill-opacity=".22"/></svg>

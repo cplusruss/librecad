@@ -1,0 +1,4 @@
+Plugins are built by the top-level CMake build (add_subdirectory(plugins)).
+
+To create a plugin, copy an existing plugin directory (for example align), rename and modify it,
+then add the directory name with add_subdirectory in plugins/CMakeLists.txt.

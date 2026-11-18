@@ -1,0 +1,15 @@
+// First icon = the application icon (used by Explorer for librecad.exe itself
+// and as the window/taskbar icon). Windows picks the first ICON resource as
+// the EXE's main icon, regardless of its name.
+LibreCAD ICON "appicon/flat.ico"
+
+// Numeric resource ID = 2: the .dxf document icon. Referenced from the
+// file-association ProgID DefaultIcon as `librecad.exe,-2` (negative integer
+// means "resource ID", positive would mean "ordinal index in the icon group").
+// See scripts/windows/register_dxf_association.bat.
+2 ICON "librecad_dxf.ico"
+
+3 ICON "appicon/darktile.ico"
+4 ICON "appicon/bold.ico"
+5 ICON "appicon/lighttile.ico"
+6 ICON "appicon/classic.ico"

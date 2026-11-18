@@ -1,0 +1,41 @@
+include_directories(
+../librecad/src/plugins
+../libraries/muparser/include
+)
+
+set(PLUGIN_HEADERS
+  ../../librecad/src/plugins/qc_plugininterface.h
+  ../../librecad/src/plugins/document_interface.h
+  ../../librecad/src/plugins/document_interface.h
+  ../../libraries/muparser/include/muParser.h
+  ../../libraries/muparser/include/muParserBase.h
+  ../../libraries/muparser/include/muParserBytecode.h
+  ../../libraries/muparser/include/muParserCallback.h
+  ../../libraries/muparser/include/muParserDef.h
+  ../../libraries/muparser/include/muParserDLL.h
+  ../../libraries/muparser/include/muParserError.h
+  ../../libraries/muparser/include/muParserFixes.h
+  ../../libraries/muparser/include/muParserInt.h
+  ../../libraries/muparser/include/muParserTemplateMagic.h
+  ../../libraries/muparser/include/muParserToken.h
+  ../../libraries/muparser/include/muParserTokenReader.h
+  ../../libraries/muparser/src/muParser.cpp
+  ../../libraries/muparser/src/muParserBase.cpp
+  ../../libraries/muparser/src/muParserBytecode.cpp
+  ../../libraries/muparser/src/muParserCallback.cpp
+  ../../libraries/muparser/src/muParserDLL.cpp
+  ../../libraries/muparser/src/muParserError.cpp
+  ../../libraries/muparser/src/muParserInt.cpp
+  ../../libraries/muparser/src/muParserTokenReader.cpp
+
+   )
+
+add_subdirectory(asciifile)
+add_subdirectory(align)
+add_subdirectory(divide)
+add_subdirectory(list)
+add_subdirectory(sameprop)
+add_subdirectory(picfile)
+add_subdirectory(plotequation)
+add_subdirectory(pointstocsv)
+add_subdirectory(gear)

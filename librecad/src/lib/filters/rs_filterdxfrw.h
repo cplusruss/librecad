@@ -1,0 +1,396 @@
+/****************************************************************************
+**
+** This file is part of the LibreCAD project, a 2D CAD program
+**
+** Copyright (C) 2021 A. Stebich (librecad@mail.lordofbikes.de)
+** Copyright (C) 2011 Rallaz, rallazz@gmail.com
+** Copyright (C) 2010 R. van Twisk (librecad@rvt.dds.nl)
+** Copyright (C) 2026 LibreCAD (librecad.org)
+**
+**
+** This file may be distributed and/or modified under the terms of the
+** GNU General Public License as published by the Free Software
+** Foundation either version 2 of the License, or (at your option)
+**  any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+**
+**********************************************************************/
+
+
+#ifndef RS_FILTERDXFRW_H
+#define RS_FILTERDXFRW_H
+
+#include <set>
+
+#include "drw_interface.h"
+#include "lc_extentitydata.h"
+#include "libdxfrw.h"
+#ifdef DWGSUPPORT
+#include "libdwgr.h"
+#endif
+#include "rs_color.h"
+#include "rs_dimension.h"
+#include "rs_filterinterface.h"
+
+class DL_WriterA;
+class LC_DimStyle;
+class LC_Hyperbola;
+class LC_MLeader;
+class LC_SplinePoints;
+class LC_Wipeout;
+class RS_Arc;
+class RS_Circle;
+class RS_Ellipse;
+class RS_Hatch;
+class RS_Image;
+class RS_Insert;
+class RS_Leader;
+class RS_Line;
+class RS_MText;
+class RS_Point;
+class RS_Polyline;
+class RS_Polyline;
+class RS_Solid;
+class RS_Spline;
+class RS_Text;
+
+/**
+ * This format filter class can import and export DXF files.
+ * It depends on the libdxfrw library.
+ *
+ * @author Rallaz
+ */
+class RS_FilterDXFRW : public RS_FilterInterface, DRW_Interface {
+public:
+    RS_FilterDXFRW();
+    ~RS_FilterDXFRW();
+
+    bool canImport(const QString &/*fileName*/, RS2::FormatType t) const override {
+#ifdef DWGSUPPORT
+        return (t==RS2::FormatDXFRW || t==RS2::FormatDWG);
+#else
+        return (t==RS2::FormatDXFRW);
+#endif
+    }
+
+    bool canExport(const QString &/*fileName*/, RS2::FormatType t) const override {
+#ifdef DWGSUPPORT
+        if (t == RS2::FormatDWG) return true;
+#endif
+        return (t==RS2::FormatDXFRW || t==RS2::FormatDXFRW2004 || t==RS2::FormatDXFRW2000
+                || t==RS2::FormatDXFRW14 || t==RS2::FormatDXFRW12);
+    }
+
+    // Error messages
+    QString lastError() const override;
+
+    // Import:
+    bool fileImport(RS_Graphic& g, const QString& file, RS2::FormatType type) override;
+
+    // Methods from DRW_CreationInterface:
+    void addHeader(const DRW_Header* data) override;
+    void addLType(const DRW_LType& /*data*/) override{};
+    void addLayer(const DRW_Layer& data) override;
+    void addDimStyle(const DRW_Dimstyle& data) override;
+    void addVport(const DRW_Vport& data) override;
+    void addView(const DRW_View &data) override;
+    void addUCS(const DRW_UCS &data) override;
+public:
+    void addTextStyle(const DRW_Textstyle& /*data*/) override{}
+    void addAppId(const DRW_AppId& /*data*/) override{}
+    void addBlock(const DRW_Block& data) override;
+    void setBlock(const int handle) override;
+    void endBlock() override;
+    void addPoint(const DRW_Point& data) override;
+    void addLine(const DRW_Line& data) override;
+    void addRay(const DRW_Ray& data) override;
+    void addXline(const DRW_Xline& data) override;
+    void addCircle(const DRW_Circle& data) override;
+    void addArc(const DRW_Arc& data) override;
+    void addEllipse(const DRW_Ellipse& data) override;
+    void addLWPolyline(const DRW_LWPolyline& data) override;
+    void addMLine(const DRW_MLine *data) override;
+    void addMLineStyle(const DRW_MLineStyle &data) override;
+    void addUnderlay(const DRW_Underlay *data) override;
+    void linkUnderlay(const DRW_UnderlayDefinition *data) override;
+    void addText(const DRW_Text& data) override;
+    void addPolyline(const DRW_Polyline& data) override;
+    void addSpline(const DRW_Spline* data) override;
+    void addKnot(const DRW_Entity&) override{}
+    void addInsert(const DRW_Insert& data) override;
+    void addTrace(const DRW_Trace& data) override;
+    void addTolerance(const DRW_Tolerance& tol) override;
+    void addSolid(const DRW_Solid& data) override;
+    void addMText(const DRW_MText& data) override;
+    /** Build an RS_MText from a DRW_MText payload, handling alignment / drawing
+     *  direction / line spacing / oldMText legacy correction.  Caller takes
+     *  ownership of the returned entity (parent is null). */
+    RS_MText *mtextEntityFromDRW(const DRW_MText &data);
+    void addDimAlign(const DRW_DimAligned *data) override;
+    void addDimLinear(const DRW_DimLinear *data) override;
+    void addDimRadial(const DRW_DimRadial *data) override;
+    void addDimDiametric(const DRW_DimDiametric *data) override;
+    void addDimAngular(const DRW_DimAngular *data) override;
+    void addDimAngular3P(const DRW_DimAngular3p *data) override;
+    void addDimOrdinate(const DRW_DimOrdinate *data) override;
+    void addLeader(const DRW_Leader *data) override;
+    void addHatch(const DRW_Hatch* data) override;
+    void addViewport(const DRW_Viewport& /*data*/) override{}
+    void addImage(const DRW_Image* data) override;
+    void linkImage(const DRW_ImageDef* data) override;
+    void addWipeout(const DRW_Image *data) override;
+    void addMLeader(const DRW_MLeader *data) override;
+    void addMLeaderStyle(const DRW_MLeaderStyle *data) override;
+
+    void add3dFace(const DRW_3Dface& data) override;
+    void addComment(const char*) override;
+
+    void addPlotSettings(const DRW_PlotSettings* data) override;
+
+    // Export:
+    bool fileExport(RS_Graphic& g, const QString& file, RS2::FormatType type) override;
+
+    void writeHeader(DRW_Header& data) override;
+    void writeLType(const std::string& lTypeName, const std::string& ltDescription, int ltSize, double ltLength,
+                    const std::vector<double>& ltPath);
+    void writeEntities() override;
+    void writeLTypes() override;
+    void writeLayers() override;
+    void writeViews() override;
+    void writeUCSs() override;
+    void writeTextstyles() override;
+    void writeVports() override;
+    void writeBlockRecords() override;
+    void writeBlocks() override;
+    void writeDimstyles() override;
+    void prepareDRWDimStyleZerosSuppression(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleArrows(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleScaling(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleExtLine(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleDimLine(DRW_Dimstyle& d, LC_DimStyle* ds);
+    int findLineTypeHandleToWrite(const QString& name) const;
+    void prepareDRWDimStyleText(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleLinearFormat(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleFractions(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleAngularFormat(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleRadial(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleTolerance(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleArc(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleLeader(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyleExtData(DRW_Dimstyle& d, LC_DimStyle* ds);
+    void prepareDRWDimStyle(DRW_Dimstyle &d, LC_DimStyle* ds);
+
+    void prepareTextStyleName(QString& sty) const;
+    void writeObjects() override;
+    void writeAppId() override;
+
+    void writePoint(RS_Point* p);
+    void writeLine(RS_Line* l);
+    void writeCircle(RS_Circle* c);
+    void writeArc(RS_Arc* a);
+    void writeEllipse(RS_Ellipse* s);
+    void writeHyperbola(LC_Hyperbola* h);
+    void writeSolid(RS_Solid* s);
+    void writeLWPolyline(RS_Polyline* l);
+    void writeSpline(RS_Spline* s);
+    void writeSplinePoints(LC_SplinePoints *s);
+    void writeInsert(RS_Insert* i);
+    void writeMText(RS_MText* t);
+    void writeText(RS_Text* t);
+    void writeHatch(RS_Hatch* h);
+    void writeImage(RS_Image* i);
+    void writeWipeout(LC_Wipeout *w);
+    void writeMLeader(LC_MLeader *m);
+    void writeLeader(RS_Leader* l);
+    void writeDimension(RS_Dimension* d);
+    void writePolyline(RS_Polyline* p);
+
+    /*	void writeEntityContainer(DL_WriterA& dw, RS_EntityContainer* con,
+                    const DRW_Entity& attrib);
+            void writeAtomicEntities(DL_WriterA& dw, RS_EntityContainer* c,
+                    const DRW_Entity& attrib, RS2::ResolveLevel level);*/
+
+    void setEntityAttributes(RS_Entity* entity, const DRW_Entity* attrib);
+    void getEntityAttributes(DRW_Entity* ent, const RS_Entity* entity);
+
+    static QString toDxfString(const QString& str);
+    static QString toNativeString(const QString& data);
+
+    /** Build an LC_SplinePoints from a DRW_Spline boundary edge of a hatch
+     *  loop. Degrees 1, 2, and 3 all converge to a quadratic spline-points
+     *  representation; cubic input is approximated by 64-point sampling.
+     *  Returns nullptr on degenerate input. Exposed for unit tests. */
+    static LC_SplinePoints *buildHatchSplineEdge(RS_EntityContainer *hatchLoop,
+                                                 const DRW_Spline *s);
+
+    /** Snap LC_SplinePoints endpoints inside hatchLoop to neighboring
+     *  line-like edge endpoints when within 10× ENDPOINT_TOLERANCE.
+     *  Counters boundary-stream float drift in mixed loops. */
+    static void snapSplineEdgeEndpoints(RS_EntityContainer *hatchLoop);
+
+  public:
+    RS_Pen attributesToPen(const DRW_Layer* att) const;
+
+    static RS_Color numberToColor(int num);
+    static int colorToNumber(const RS_Color& col, int *rgb);
+
+    static RS2::LineType nameToLineType(const QString& name);
+    static QString lineTypeToName(RS2::LineType lineType);
+    //static QString lineTypeToDescription(RS2::LineType lineType);
+
+    static RS2::LineWidth numberToWidth(DRW_LW_Conv::lineWidth lw);
+    /// Drop DXF line widths on import (Options > General). Default on.
+    static bool isIgnoreLineWeightsOnImport();
+    static DRW_LW_Conv::lineWidth widthToNumber(RS2::LineWidth width);
+
+    static RS2::AngleFormat numberToAngleFormat(int num);
+    static int angleFormatToNumber(RS2::AngleFormat af);
+
+    static RS2::Unit numberToUnit(int num);
+    static int unitToNumber(RS2::Unit unit);
+
+    static bool isVariableTwoDimensional(const QString& var);
+
+    static RS_FilterInterface* createFilter(){return new RS_FilterDXFRW();}
+protected:
+    void parseDimStyleExtData(const DRW_Dimstyle& s, LC_DimStyle* result);
+    bool resolveBlockNameByHandle(duint32 handle, QString& block_name) const;
+    LC_DimStyle* parseDimStyleOverride(LC_ExtEntityData* data) const;
+    RS_DimensionData convDimensionData(const DRW_Dimension* data);
+    void fillEntityExtData(std::vector<std::shared_ptr<DRW_Variant>>& extData, LC_ExtEntityData* entityData);
+    LC_ExtEntityData* extractEntityExtData(const std::vector<std::shared_ptr<DRW_Variant>>& extData);
+    bool shouldGenerateExtEntityData(RS_Dimension* entity);
+    QString toHexStr(int n);
+    void addDimStyleOverrideToExtendedData(LC_ExtEntityData* extEntityData, LC_DimStyle* styleOverride);
+private:
+    void prepareBlocks();
+    void writeEntity(RS_Entity* e);
+#ifdef DWGSUPPORT
+    void printDwgError(int le);
+    QString strVal(DRW_Variant* var);
+    QString printDwgVersion(int v);
+#endif
+
+private:
+    /** Pointer to the m_graphic we currently operate on. */
+    RS_Graphic* m_graphic = nullptr;
+    /** File name. Used to find out the full path of images. */
+    QString m_file;
+    /** Pointer to current entity container (either block or graphic) */
+    RS_EntityContainer* m_currentContainer = nullptr;
+    /** MLINESTYLE cache: name → style data. Populated by addMLineStyle as
+     *  the OBJECTS section is decoded; consumed by addMLine to compute
+     *  per-element offsets when decomposing the MLINE into N polylines. */
+    std::map<QString, DRW_MLineStyle> m_mlineStyleCache;
+
+    /** UNDERLAYDEFINITION cache: handle → definition (filename, sheet, kind).
+     *  Populated by linkUnderlay (OBJECTS section, after entities are
+     *  parsed). Consumed at export time + by future UI surfaces that
+     *  want the filename for a given underlay. Cleared per import. */
+    std::map<duint32, DRW_UnderlayDefinition> m_underlayDefMap;
+
+    /** Recursion guard for embedXref. Holds the absolute paths of files
+     *  currently being loaded (the host file plus any in-progress XREF
+     *  embeds). Refuses re-entry on circular references. */
+    std::set<QString> m_xrefStack;
+    /** Names of XREF blocks recorded by addBlock() for the current import.
+     *  Used after fileImport finishes to warn the user about XREF blocks
+     *  that no modelspace INSERT references (orphan XREFs that AutoCAD
+     *  typically renders through a paper-space layout viewport, which
+     *  LibreCAD doesn't support). */
+    std::set<QString> m_xrefBlockNames;
+    /** Resolve an XREF path stored in DRW_Block::xrefPath. Tries:
+     *  (1) the stored path as absolute, (2) host-dir + stored path,
+     *  (3) host-dir + basename, (4) host-dir + basename with case-
+     *  insensitive + space-to-underscore matching, (5) same as (4)
+     *  but accepting .dxf in place of .dwg. Returns absolute path on
+     *  success, empty QString on failure. */
+    QString resolveXrefPath(const QString &xrefPath) const;
+    /** Embed external file's modelspace contents into @p block as a
+     *  read-only XREF resolution. Layers are namespaced
+     *  `<blockName>|<layerName>`. Recursion guarded by m_xrefStack.
+     *  Returns true on success (block populated), false on failure
+     *  (block left as it was). */
+    bool embedXref(RS_Block *block, const QString &xrefPath,
+                   const QString &blockName);
+
+    /** DWG file format version recognized at openFile() time. Set even
+     *  on the BAD_VERSION error path so the user-facing error message
+     *  can name which version was found and which range is supported.
+     *  UNKNOWNV when the magic header isn't recognized at all. */
+    DRW::Version m_dwgVersion = DRW::UNKNOWNV;
+
+    /** Scan @p container for RS_Polyline entities carrying LibreCAD_MLINE
+     *  XDATA and reconstruct DRW_MLine entities by grouping siblings.
+     *  Consumed polylines are written into @p consumed so the normal
+     *  entity-write loop skips them. Polylines without metadata, or
+     *  groups missing siblings, are left for plain LWPOLYLINE export. */
+    void reconstructMLines(RS_EntityContainer *container,
+                           std::set<RS_Entity *> &consumed);
+
+    /** Scan @p container for RS_Polyline entities carrying
+     *  LibreCAD_UNDERLAY XDATA and reconstruct DRW_Underlay entities.
+     *  Each polyline maps 1:1 to an underlay (no group). Consumed
+     *  polylines are written into @p consumed so the normal
+     *  entity-write loop skips them. Polylines without metadata fall
+     *  through as plain LWPOLYLINEs. */
+    void reconstructUnderlays(RS_EntityContainer *container,
+                              std::set<RS_Entity *> &consumed);
+    /** File m_codePage. Used to find the text coder. */
+    QString m_codePage;
+    /** File version. */
+    QString m_versionStr;
+    int m_version = 0;
+    /** Library File version. */
+#define LIBDXFRW_VERSION(version,release,patch) (((version) << 16) | ((release) << 8) | (patch))
+    bool m_isLibDxfRw {false};
+    uint m_libDxfRwVersion = 0;
+    /** dimension style. */
+    QString m_dimStyle;
+    /** text style. */
+    QString m_textStyle;
+    /** Temporary list to handle unnamed blocks to write R12 dxf. */
+    QHash <RS_Entity*, QString> m_noNameBlock;
+    QHash <QString, QString> m_fontList;
+    bool m_oldMText = false;
+    dxfRW *m_dxfW {nullptr};
+    dxfRW *m_dxfR {nullptr};
+    /** Size in bytes of the file currently being imported (0 when unknown,
+     *  e.g. loading from a resource/string). Denominator for the load
+     *  progress bar. */
+    long long m_fileSize = 0;
+    /** Last whole-percent value pushed to the load progress bar; -1 before
+     *  any. Throttles updates so we only touch the (event-pumping) progress
+     *  dialog ~100 times per load instead of once per entity. */
+    int m_lastProgressPercent = -1;
+    /** Drives the load progress bar from the current parse position. Called
+     *  per entity via setEntityAttributes; a no-op unless m_fileSize is set. */
+    void reportLoadProgress();
+#ifdef DWGSUPPORT
+    dwgRW *m_dwgW {nullptr};
+#endif
+    /** If saved version are 2004 or above can save color in RGB value. */
+    bool m_exactColor = false;
+    /** hash of block containers and handleBlock numbers to read dwg files */
+    QHash<int, RS_EntityContainer*> m_blockHash;
+    /** Pointer to entity container to store possible orphan entities like paper space */
+    RS_EntityContainer* m_dummyContainer = nullptr;
+    void applyParsedDimStyleExtData(LC_DimStyle* dimStyle, const QString& appName, const std::vector<DRW_Variant>& vector);
+    LC_DimStyle *createDimStyle(const DRW_Dimstyle &s);
+    void addPolylineSegment(RS_Polyline& polyline, RS_Vector prev_pos, RS_Vector curr_pos, double bulge, const std::vector<std::shared_ptr<DRW_Variant>>& extData, bool isClosedSegment);
+    /**
+     * Handle degree-2 SPLINE with exactly 3 control points (rational quadratic conic).
+     * @return true if a conic entity (hyperbola or parabola) was created and handled
+     */
+    bool handleQuadraticConicSpline(const DRW_Spline* data);
+};
+
+#endif

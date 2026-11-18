@@ -1,0 +1,32 @@
+# Whitelist: only what is needed to build LibreCAD is tracked.
+/*
+!/.gitignore
+!/README.md
+!/CMakeLists.txt
+!/librecad/
+!/libraries/
+!/plugins/
+
+!/scripts/
+/scripts/*
+!/scripts/make_portable.ps1
+!/scripts/register_dxf_association.bat
+!/scripts/unregister_dxf_association.bat
+
+# Build output and editor leftovers inside the tracked folders
+build/
+*.o
+*.obj
+*.a
+*.lib
+*.exe
+*.dll
+*.pdb
+*.qm
+*.user
+*.autosave
+*.bak
+*.orig
+*.rej
+*.swp
+*~
