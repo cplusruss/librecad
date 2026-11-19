@@ -17,9 +17,19 @@ $outDir     = 'C:\tmp\librecad-release'
 $zipName    = 'LibreCAD-portable-win64.zip'
 $mingwBin   = 'C:\Qt\Tools\mingw1310_64\bin'
 
+# Windows PowerShell turns a native command's stderr (gh, git push progress) into a
+# terminating error under 'Stop', so native calls run under 'Continue' and are judged
+# by exit code alone.
 function Invoke-Checked([string]$what, [scriptblock]$cmd) {
+    $ErrorActionPreference = 'Continue'
     & $cmd
     if ($LASTEXITCODE -ne 0) { throw "$what failed ($LASTEXITCODE)" }
+}
+
+function Get-ExitCode([scriptblock]$cmd) {
+    $ErrorActionPreference = 'Continue'
+    & $cmd *> $null
+    $LASTEXITCODE
 }
 
 # --- Preconditions ---
@@ -27,7 +37,7 @@ Push-Location $root
 try {
     $status = @(git status --porcelain --branch)
     if ($LASTEXITCODE -ne 0) { throw 'git status failed' }
-    Invoke-Checked 'gh auth status' { gh auth status *> $null }
+    if ((Get-ExitCode { gh auth status }) -ne 0) { throw 'gh is not logged in' }
     $repo = gh repo view --json nameWithOwner -q .nameWithOwner
     if ($LASTEXITCODE -ne 0 -or -not $repo) { throw 'gh repo view failed' }
 } finally { Pop-Location }
@@ -66,8 +76,7 @@ if (-not $sm.Success) { throw "No 'set(LC_VERSION `"`${PROJECT_VERSION}...`")' i
 $lcVersion = $version + $sm.Groups[1].Value
 
 if (-not $DryRun) {
-    gh release view $tag -R $repo *> $null
-    if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists on $repo" }
+    if ((Get-ExitCode { gh release view $tag -R $repo }) -eq 0) { throw "Release $tag already exists on $repo" }
 }
 Write-Host "Version $current -> $version ($lcVersion), tag $tag, branch $branch"
 
@@ -85,7 +94,7 @@ try {
     # Dropbox briefly locks .d files mid-build; each pass resumes where ninja stopped,
     # and a real compile error fails every pass.
     for ($pass = 1; $pass -le 5; $pass++) {
-        & $cmake --build $buildDir
+        & { $ErrorActionPreference = 'Continue'; & $cmake --build $buildDir }
         if ($LASTEXITCODE -eq 0) { break }
         if ($pass -eq 5) { throw "Build failed ($LASTEXITCODE) after $pass passes" }
         Write-Host "Build pass $pass failed, retrying"
