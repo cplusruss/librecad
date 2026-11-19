@@ -10,6 +10,7 @@
 !/scripts/
 /scripts/*
 !/scripts/make_portable.ps1
+!/scripts/release.ps1
 !/scripts/register_dxf_association.bat
 !/scripts/unregister_dxf_association.bat
 

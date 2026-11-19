@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
-project(LibreCAD VERSION 2.2.2)
+project(LibreCAD VERSION 2.2.2.5)
+# The only version source: scripts\release.ps1 bumps project(VERSION) above.
+set(LC_VERSION "${PROJECT_VERSION}-alpha")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -1616,7 +1618,6 @@ qt_add_library(librecad_lib STATIC
 target_compile_definitions(librecad_lib PRIVATE
     DWGSUPPORT
     MUPARSER_STATIC
-    LC_VERSION=2.2.2.5-alpha
     LC_PRERELEASE=true
 )
 target_include_directories(librecad_lib PRIVATE
@@ -1722,6 +1723,8 @@ target_link_libraries(librecad PRIVATE
    librecad_lib
    Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Network
 )
+# Only MAIN_SOURCES read LC_VERSION, so a version bump recompiles just these.
+target_compile_definitions(librecad PRIVATE LC_VERSION=${LC_VERSION})
 # Inject the build timestamp ONLY into main.cpp so the rest of the tree's
 # compile commands don't change every configure -> incremental builds stay fast.
 set_source_files_properties(librecad/src/main/main.cpp PROPERTIES
@@ -1825,5 +1828,5 @@ if(BUILD_TESTS)
     # Enable C++17 for the test target (matching LibreCAD's standard)
     target_compile_features(librecad_tests PRIVATE cxx_std_17)
     # compiling time defines
-    target_compile_definitions(librecad_tests PRIVATE BUILD_TESTS=1 DWGSUPPORT)
+    target_compile_definitions(librecad_tests PRIVATE BUILD_TESTS=1 DWGSUPPORT LC_VERSION=${LC_VERSION})
 endif()

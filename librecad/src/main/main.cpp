@@ -70,9 +70,8 @@
 #include "rs_settings.h"
 #include "rs_system.h"
 
-// default version: if not supplied by during building
 #ifndef LC_VERSION
-#define LC_VERSION "2.2.2-alpha"
+#error LC_VERSION must come from CMakeLists.txt
 #endif
 
 // fixme - sand - files - complete refactoring
