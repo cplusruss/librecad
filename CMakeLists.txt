@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(LibreCAD VERSION 2.2.2.5)
+project(LibreCAD VERSION 2.2.2.6)
 # The only version source: scripts\release.ps1 bumps project(VERSION) above.
 set(LC_VERSION "${PROJECT_VERSION}-alpha")
 
